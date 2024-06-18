@@ -1,6 +1,6 @@
 # SBG-TIR OTTER Level 2 Surface Temperature & Emissivity (L2 LSTE) Data Product
 
-Glynn C. Hulley (he/him)<br>
+[Glynn C. Hulley](https://github.com/ghulley) (he/him)<br>
 [glynn.hulley@jpl.nasa.gov](mailto:glynn.hulley@jpl.nasa.gov)<br>
 Lead developer and designer<br>
 NASA Jet Propulsion Laboratory 329G
