@@ -74,7 +74,7 @@ SBG standards incorporate additional metadata that describe each HDF5 Dataset wi
 | Units | Units of measure.  Appendix A lists applicable units for various data elements in this product. | Yes |
 | valid_max | The largest valid value for any element in the Dataset.  The data type in valid_max matches the type of the associated Dataset.  Thus, if the associated Dataset stores float32 values, the corresponding valid_max will also be float32. | No |
 | valid_min | The smallest valid value for any element in the Dataset.  The data type in valid_min matches the type of the associated Dataset.  Thus, if the associated Dataset stores float32 values, the corresponding valid_min will also be float32. | No |
-| FillValue | Specification of the value that will appear in the Dataset when an element is missing or undefined.  The data type of _FillValue matches the type of the associated Dataset.  Thus, if the associated Dataset stores float32 values, the corresponding _FillValue will also be float32. Datasets that do not have a fill value will omit this attribute. | No |
+| _FillValue | Specification of the value that will appear in the Dataset when an element is missing or undefined.  The data type of _FillValue matches the type of the associated Dataset.  Thus, if the associated Dataset stores float32 values, the corresponding _FillValue will also be float32. Datasets that do not have a fill value will omit this attribute. | No |
 | long_name | A descriptive name that clearly describes the content of the associated Dataset. | Yes |
 
 *Table 2-3: SBG Specific Local Attributes*
