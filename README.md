@@ -7,65 +7,21 @@ NASA Jet Propulsion Laboratory 329G
 
 This repository will contain the Surface Biology and Geology Thermal Infrared (SBG-TIR) OTTER level 2 land-surface temperature and emissivity (L2 LSTE) data product algorithm.
 
-JPL D-XXXXX
-
-**Surface Biology and Geology (SBG) Observing Terrestrial Thermal Emission Radiometer (OTTER)**
-
 ##  1. Introduction
 
-### 1.1. Identification
+This document outlines the theory and methodology for generating the OTTER Level-2 (L2) land surface temperature and emissivity (LST&E) products. The LST product is derived from the six TIR spectral bands between 8 and 12.5 µm, while the emissivity is retrieved for all 6 TIR and 2 MIR bands. The LST&E products are retrieved from the surface spectral radiance that is obtained by atmospherically correcting the at-sensor spectral radiance. Knowledge of the surface emissivity is critical for accurately recovering the surface temperature, a key climate variable in many scientific studies from climatology to hydrology, modeling the greenhouse effect, drought monitoring, and land surface models (Anderson et al. 2007; French et al. 2005; Jin and Dickinson 2010).
 
-This is the Product Specification Document (PSD) for Level 2 (L2) data products of the Surface Biology and Geology (SBG) project. The SBG L2 products provide Land Surface Temperature and Emissivity (LST&E) and a Cloud Mask generated from data acquired by the SBG radiometer instrument according to the algorithm described in the SBG L2 LST&E Algorithm Theoretical Basis Document (ATBD) (JPL D-XXXXX) and L2 Cloud ATBD (JPL-D-XXXXX).
-
-### 1.2. Purpose and Scope
-
-This Product Specification Document (PSD) describes the standard Level 2 LSTE and Cloud Mask products generated in the SBG SDS at JPL. These include the detailed descriptions of the format and contents of the product and ancillary files that will be delivered to the Land Process Distributed Active Archive Center (LP-DAAC).
-
-### 1.3.Mission Overview
-
-### 1.4. Applicable and Reference Documents
-
-"Applicable" documents levy requirements on the areas addressed in this document. "Reference" documents are identified in the text of this document only to provide additional information to readers. Unless stated otherwise, the document revision level is Initial Release. Document dates are not listed, as they are redundant with the revision level.
-
-#### 1.4.1. Applicable Documents
-
-#### 1.4.2. Reference Documents
-
-### 1.5. SBG Data Products
-
-The SBG mission will generate XX different distributable data products. The products represent four levels of data processing, with data granules defined as an image scene. Each image scene consists of XX scans of the instrument mirror, each scan taking approximately X seconds, and each image scene taking approximately XX seconds. Each image scene starts at the beginning of the first target area encountered during each orbit. Each orbit is defined \[insert orbit description\].
-
-SBG Level 0 data include spacecraft packets that have been pre-processed by the Ground Data System (GDS). Level 1 products include spacecraft engineering data, the time-tagged raw sensor pixels appended with their radiometric calibration coefficients, the blackbody pixels used to generate the calibration coefficients, geolocated and radiometrically calibrated at-sensor radiances of each image pixel, the geolocation tags of each pixel, and the corrected spacecraft attitude data. Level 2 products include the land surface temperature and emissivity for each spectral band retrieved from the at-sensor radiance data, and a cloud mask. Level 2 products also appear in image scene granules. Level 3/4 products include plant functional traits, geology, and snow products derived from Level 2 products.
-
-The SBG products are listed in Table 1-1. This document will discuss only the Level 2 products.
-
-| **Product type** | **Description** | 
-| L0A_FLEX | Level 0 "raw" spacecraft packets |
-| L0A_HK |  Level 0 housekeeping packets |
-| L1A_ENG | Spacecraft and instrument engineering data, including blackbody gradient coefficients |
-| L1A_BB | Instrument Black Body calibration pixels |
-| L1A_PIX | Raw pixel data with appended calibration coefficients |
-| L1B_GEO | Geolocation tags, sun angles, and look angles, and calibrated, resampled at-sensor radiances |
-| L1B_RAD | Radiometrically corrected, band-aligned, squared at-sensor radiance pixels |
-| L2_LSTE | Land Surface temperature and emissivity |
-| L2_CLOUD | Cloud mask |
-
-*Table 1-1: SBG Distributable Standard Products*
+In addition to surface energy balance, LST&E products are essential for a wide range of other Earth system studies. For example, emissivity spectral signatures are important for geologic studies and mineral mapping studies (Hook et al. 2005; Vaughan et al. 2005). This is because emissivity features in the TIR region are unique for many different types of materials that make up the Earth's surface, for example, quartz, which is ubiquitous in most of the arid regions of the world. Emissivities are also used for land use and land cover change mapping since vegetation fractions can often be inferred if the background soil is observable (French et al. 2008). 
 
 
-##  Data Product OrganIzation
+Maximum radiometric emission for the typical range of Earth surface temperatures, excluding fires and volcanoes, is found in two infrared spectral "window" regions: the midwave infrared (3.5–5 µm) and the thermal infrared (8–13 µm). The radiation emitted in these windows for a given wavelength is a function of both temperature and emissivity. Determining the separate contribution from each component in a radiometric measurement is an ill-posed problem since there will always be more unknowns—N emissivities and a single temperature—than the number of measurements, N, available. For SBG, we will be solving for one temperature and eight emissivities. Therefore, an additional constraint is needed, independent of the data. There have been numerous theories and approaches over the past two decades to solve for this extra degree of freedom. For example, the ASTER Temperature Emissivity Working Group (TEWG) analyzed ten different algorithms for solving the problem (Gillespie et al. 1999). Most of these relied on a radiative transfer model to correct at-sensor radiance to surface radiance and an emissivity model to separate temperature and emissivity. Other approaches include the split-window (SW) algorithm, which extends the SST SW approach to land surfaces, assuming that land emissivities in the window region (10.5–12 µm) are stable and well known. However, this assumption leads to unreasonably large errors over barren regions where emissivities have large variations both spatially and spectrally. The ASTER TEWG finally decided on a hybrid algorithm, termed the temperature emissivity separation (TES) algorithm, which capitalizes on the strengths of previous algorithms with additional features (Gillespie et al. 1998). 
 
-### Product File Format
 
-The Network Common Data Form 4 (NetCDF-4) format will be used to distribute SBG granules at the orbit/scene level. These product files have a .nc file extension and are internally organized using the NetCDF-4 data standard. The NetCDF-4 rmat is utilized here for long-term archiving, and is not recommended for end-user analysis. These NetCDF-4 files are compatible with NetCDF Viewer, Panoply, and the NetCDF4 package in Python.
+The remainder of the document will discuss the SBG instrument characteristics, provide a background on TIR remote sensing, give a full description and background on the atmospheric correction and the TES algorithm, provide quality assessment, discuss numerical simulation studies and, finally, outline a validation plan.
 
-Information on Network Common Data Form (NetCDF-4) may be found at [[https://www.unidata.ucar.edu/software/netcdf/]{.underline}](https://www.unidata.ucar.edu/software/netcdf/).
+## 2. Product Data
 
-#### File Level Metadata
-
-All metadata that describe the full content of each granule of the SBG data product are stored within the explicitly named "/Metadata" Group. Metadata are handled using exactly the same procedures as those that are used to handle data. The contents of each Attribute that stores metadata conform to one of the SBG Types. Most metadata elements are stored as scalars. A few metadata elements are stored as arrays. The metadata appear in a set of HDF5 Groups under the "/Metadata" Group. These HDF5 Groups contain a set of HDF5 Attributes.
-
-#### Local Metadata
+#### 2.1. Standard and Local Metadata
 
 SBG standards incorporate additional metadata that describe each HDF5 Dataset within the HDF5 file. Each of these metadata elements appear in an HDF5 Attribute that is directly associated with the HDF5 Dataset. Wherever possible, these HDF5 Attributes employ names that conform to the Climate and Forecast (CF) conventions. Table 2-3 lists the CF names for the HDF5 Attributes that SBG products typically employ.
 
@@ -77,124 +33,16 @@ SBG standards incorporate additional metadata that describe each HDF5 Dataset wi
 | _FillValue | Specification of the value that will appear in the Dataset when an element is missing or undefined.  The data type of _FillValue matches the type of the associated Dataset.  Thus, if the associated Dataset stores float32 values, the corresponding _FillValue will also be float32. Datasets that do not have a fill value will omit this attribute. | No |
 | long_name | A descriptive name that clearly describes the content of the associated Dataset. | Yes |
 
-*Table 2-3: SBG Specific Local Attributes*
+*Table 1. SBG Specific Local Attributes*
 
-### Data Definition Standards 
-
-The following sections of this document specify the characteristics and definitions of every data element stored in the SBG data products. Table 2-4 defines each of the specific characteristics that are listed in those sections. Some of these characteristics correspond with the SBG HDF5 Attributes that are associated with each Dataset. Data element characteristics that correspond to SBG HDF5 Attributes bear the same name. The remaining characteristics are descriptive data that help users better understand the data product content.
-
-In some situations, a standard characteristic may not apply to a data element. In those cases, the field contains the character string 'n/a'. Hexadecimal representation sometimes indicates data content more clearly. Numbers represented in hexadecimal begin with the character string '0x'.
-
-| **Characteristic** | **Definition** |
-| --- | --- |
-| Type | The data representation of the element within the storage medium. The storage class specification must conform to a valid SBG type. |
-| Units | Units of measure.  Typical values include “deg”, “degC”, “Kelvin”, “meters/second”, “meters”, “m**2”, “seconds” and “counts”.  Appendix A includes references to important data measurement unit symbols. |
-
-*Table 2-4: Data Element Characteristic Definitions*
-
-#### Double Precision Time Variables
-
-SBG double precision time variables contain measurements relative to the J2000 epoch. Thus, these variables represent a real number of Standard International (SI) compatible seconds since 11:58:55.816 on January 1, 2000 UTC.
-
-#### Array Representation
-
-This document employs array notation to demonstrate and clarify the correspondence among data elements in different product data elements. The array notation adopted in this document is similar to the standards of the Fortran programming language. Indices are one based. Thus, the first index in each dimension is one. This convention is unlike C or C++, where the initial index in each dimension is zero. In multidimensional arrays, the leftmost subscript index changes most rapidly. Thus, in this document, array elements ARRAY(15,1,5) and ARRAY(16,1,5) are stored contiguously.
-
-HDF5 is designed to read data seamlessly regardless of the computer language used to write an application. Thus, elements that are contiguous using the dimension notation in this document will appear in contiguous locations in arrays for reading applications in any language with an HDF5 interface.
-
-This document differentiates among array indices based on relative contiguity of storage of elements referenced with consecutive numbers in that index position. A faster or fastest moving index implies that the elements with consecutive numbers in that index position are stored in relative proximity in memory. A slower or slowest moving index implies that the elements referenced with consecutive indices are stored more remotely in memory. For instance, given array element ARRAY(15,1,5) in Fortran, the first index is the fastest moving index and the third index is the slowest moving index. On the other hand, given array element array\[4\]\[0\]\[14\] in C, the first index is the slowest moving index and the third index is the fastest moving index.
-
-##  SBG Product Files
-
-The SBG product file will contain at least 3 groups of data: A standard metadata group that specifies the same type of contents for all products, a product specific metadata group that specifies those metadata elements that are useful for defining attributes of the product data, and the group(s) containing the product data. (Note: A product metadata is not to be confused with a HDF5 object metadata.)
-
-All product file names will have the form:
-
-SBG_<PROD_TYPE>_<OOOOO>_<SSS>_<YYYYMMDD>T<hhmmss>_<BBBB>_<VV>.<TYPE>
-
-Where:
-
-PROD_TYPE:  Product type =
-L2_LSTE, Land surface Temperature and Emissivity data
-L2_CLOUD, Level 2 Cloud mask data
-
-OOOOO:  Orbit number; starting at start of mission, ascending equatorial crossing
-SSS:  Scene ID; starting at first scene of first orbit
-YYYYMMDD:  Year, month, day of scene start time
-hhmmss: Hour, minute, seconds of scene start time
-BBBB:  Build ID of software that generated product, Major+Minor (2+2 digits)
-VV:  Product version number (2 digits)
-TYPE:  File type extension=
-h5 for the data file
-h5.met for the metadata file.
-
-A SITE name is added to the ALEXI-USDA file name:
-SBG_<PROD_TYPE>_<OOOOO>_<SSS>_<YYYYMMDD>T<hhmmss>_<BBbb>_<VV>.<SITE>.<TYPE>
-
-
-### Standard Metadata
-
+##### 2.1.1. Standard Metadata
 This is the minimal set of metadata that must be included with each product file. The standard metadata consists of the following:
 
-| **Name** | **Type** | **Size** | **Example** |
-| --- | --- | --- | --- |
-| AncillaryInputPointer | String | variable | Group name of ancillary file list | 
-| AutomaticQualityFlag | String | variable | PASS/FAIL (of product data) |
-| BuildId | String | variable | |
-| CollectionLabel | String | variable | |
-| DataFormatType | String | variable | NCSAHDF5 |
-| DayNightFlag | String | variable | |
-| EastBoundingCoordinate | LongFloat | 8 | |
-| HDFVersionId | String | variable | 1.8.16 |
-| ImageLines | Int32 | 4 | 5632 |
-| ImageLineSpacing | Float32 | 4 | 68.754 | 
-| ImagePixels | Int32 | 4 | 5400 |
-| ImagePixelSpacing | Float32 | 4 | 65.536 |
-| InputPointer | String | variable | |
-| InstrumentShortName | String | variable | SBG |
-| LocalGranuleID | String | variable | --- |
-| LongName | String | variable | SBG |
-| InstrumentShortName | String | variable | --- |
-| LocalGranuleID | String | variable | --- |
-| LongName | String | variable | SBG |
-| NorthBoundingCoordinate | LongFloat | 8 | --- |
-| PGEName | String | variable | L2_LSTE (L2_CLOUD) |
-| PGEVersion | String | variable | |
-| PlatformLongName | String | variable | |
-| PlatformShortName | String | variable | |
-| PlatformType | String | variable | Spacecraft |
-| ProcessingLevelID | String | variable | 1 |
-| ProcessingLevelDescription | String | variable | Level 2 Land Surface Temperatures and Emissivity (Level 2 Cloud mask) |
-| ProducerAgency | String | variable | JPL |
-| ProducerInstitution | String | variable | Caltech |
-| ProductionDateTime | String | variable | |
-| ProductionLocation | String | variable | |
-| CampaignShortName | String | variable | Primary |
-| RangeBeginningDate | String | variable | |
-| CampaignShortName | String | variable | |
-| RangeBeginningDate | String | variable | |
-| RangeBeginningTime | String | variable | |
-| RangeEndingDate | String | variable | |
-| RangeEndingTime | String | variable | |
-| SceneID | String | variable | |
-| ShortName | String | variable | L2_LSTE (L2_CLOUD) |
-| SceneID | String | variable | |
-| ShortName | String | variable | |
-| SISName | String | variable | |
-| SISVersion | String | variable | |
-| SouthBoundingCoordinate | LongFloat | 8 | |
-| StartOrbitNumber | String | variable | |
-| StartOrbitNumber | String | variable | |
-| WestBoundingCoordinate | LongFloat | 8 | |
-
-*Table 3-1: Standard Product Metadata*
-
-
-### Product-Specific Metadata
+##### 2.1.2. Product Specific Metadata
 
 Any additional metadata necessary for describing the product will be recorded in this group.
 
-#### L2 LSTE Metadata
+The product metadata for each product file will be generated by the PCS from the metadata contents of each product file. The metadata will be converted into extensible markup language (XML). These will be used by the DAAC for cataloging. Exact contents and layout to be defined by PCS.
 
 | **Group** | **Type** | **Size** | **Example** | 
 | --- | --- | --- | --- |
@@ -215,9 +63,7 @@ Any additional metadata necessary for describing the product will be recorded in
 | Emis10GoodAvg | LongFloat | 8 | 0.95 |
 | AncillaryGEOS5 | String | 255 |  |
 | BandSpecification | Float32 | μm |  |
-*Table 3-2: L2 LSTE Metadata Definitions*
-
-#### L2 CLOUD Metadata
+*Table 3-2: L2 LSTE Product Metadata Definitions*
 
 | **Name** | **Type** | **Size** | **Example** | 
 | --- | --- | --- | --- |
@@ -227,13 +73,9 @@ Any additional metadata necessary for describing the product will be recorded in
 | CloudMinTemperature | LongFloat | 8 | 221 |
 | CloudSDevTemperature | LongFloat | 8 | 0.45 |
 
-*Table 3-3: L2 CLOUD Metadata Definitions*
+*Table 3-3: L2 CLOUD Product Metadata Definitions*
 
-###  Product Data
-
-The product data will be stored in this group.
-
-#### L2 LSTE data
+### 2.2. L2 LSTE Products
 
 | **SDS** | **Long Name** | **Data Type** | **Units** | **Valid Range** | **Fill Value** | **Scale Factor** | **Offset** | 
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -305,7 +147,7 @@ Recommend more detailed analysis of   other QC information
 
 *Table 3-5: Bit flags defined in the QC SCS*
 
-#### L2 CLOUD data
+### 2.3. L2 CLOUD data
 
 | **SDS** | **Long Name** | **Data Type** | **Units** | **Valid Range** | **Fill Value** | **Scale Factor** | **Offset** | 
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -324,11 +166,217 @@ Recommend more detailed analysis of   other QC information
 
 *Table 3-7: Metadata Definitions for the L2 Cloud Product*
 
-### Low latency product
+### 2.4. Low latency product
 
 A low latency (\< 24 hour) product will be created in addition to the standard product. It may or may not be archived. The product contents will be the same as the standard product, although the method to obtain it will be different (see the relevant ATBD).
 
-### Product Metadata File
 
-The product metadata for each product file will be generated by the PCS from the metadata contents of each product file. The metadata will be converted into extensible markup language (XML). These will be used by the DAAC for cataloging. Exact contents and layout to be defined by PCS.
+## 3. Theory and Methodology
 
+The at-sensor measured radiance in the infrared region (4–15 µm, MIR: 3-5 µm, TIR: 8-15 µm) consists of a combination of different terms from surface emission, solar reflection, and atmospheric emission and attenuation. The Earth-emitted radiance is a function of temperature and emissivity and gets attenuated by the atmosphere on its path to the satellite. The emissivity of an isothermal, homogeneous emitter is defined as the ratio of the actual emitted radiance to the radiance emitted from a black body at the same thermodynamic temperature (Norman and Becker 1995),  ϵ_λ= R_λ/B_λ. The emissivity is an intrinsic property of the Earth’s surface and is an independent measurement of the surface temperature, which varies with irradiance and local atmospheric conditions. The emissivity of most natural Earth surfaces for the TIR wavelength ranges between 8 and 12 μm and, for a sensor with spatial scales <100 m, varies from ~0.7 to close to 1.0. Narrowband emissivities less than 0.85 are typical for most desert and semi-arid areas due to the strong quartz absorption feature (reststrahlen band) between the 8- and 9.5-μm range, whereas the emissivity of vegetation, water, and ice cover are generally greater than 0.95 and spectrally flat in the 3–15-μm range except for dry and senesced vegetation that can have emissivities range from 0.9-0.95 in the longer wavelengths above 10 μm.
+
+TES is applied to the land-leaving TIR radiances that are estimated by atmospherically correcting the at-sensor radiance on a pixel-by-pixel basis using a radiative transfer model. TES uses an empirical relationship to predict the minimum emissivity that would be observed from a given spectral contrast, or minimum-maximum difference (MMD) (Kealy and Hook 1993; Matsunaga 1994). The empirical relationship is referred to as the calibration curve and is derived from a subset of spectra in the ASTER spectral library (Baldridge et al. 2009). A new calibration curve, applicable to SBG TIR bands, will be computed using the latest ECOSTRESS spectral library v2 (Meerdink et al. 2019), in addition to spectra from 9 pseudo-invariant sand dune sites located in the US Southwest (Hulley et al. 2009a). TES has been shown to accurately recover temperatures within 1 K and emissivities within 0.015 for a wide range of surfaces and is a well established physical algorithm that produces seamless images with no artificial discontinuities such as might be seen in a land classification type algorithm (Gillespie et al. 1998).
+
+
+## 4. Uncertainty Analysis 
+
+NASA has identified a major need to develop long-term, consistent products valid across multiple missions, with well-defined uncertainty statistics addressing specific Earth-science questions. These products are termed Earth System Data Records (ESDRs), and LST&E has been identified as an important ESDR. Currently a lack of understanding of LST&E uncertainties limits their usefulness in land surface and climate models. In this section we present results from the Temperature Emissivity Uncertainty Simulator (TEUSim) that has been developed to quantify and model uncertainties for a variety of TIR sensors and LST algorithms (Hulley et al. 2012b). Using the simulator, uncertainties were estimated for the L2 products of SBG using a 6-band TES approach. These uncertainties will be parameterized according to view angle and estimated total column water vapor for eventual application to real-time SBG L2 data on a pixel by pixel basis.
+
+## 5. Cal/Val
+
+The OTTER L2 LST product will be validated with a combination of Temperature-based (Coll et al. 2005; Hook et al. 2004) and Radiance-based methods (Hulley and Hook 2012; Wan and Li 2008) using a global set of validation sites. The L2 emissivity product will be validated using a combination of lab-measured samples collected at various sand dune sites, and with the ASTER Global Emissivity Database (ASTER GED)  (Hulley and Hook 2009b). 
+
+
+#### Acknowledgements 
+
+The research was carried out at the Jet Propulsion Laboratory, California Institute of Technology, under a contract with the National Aeronautics and Space Administration.
+
+#### References
+
+[]{#_ENREF_1 .anchor}Anderson, M.C., Norman, J.M., Mecikalski, J.R., Otkin, J.A., & Kustas, W.P. (2007). A climatological study of evapotranspiration and moisture stress across the continental United States based on thermal remote sensing: 2. Surface moisture climatology. *Journal of Geophysical Research-Atmospheres, 112*
+
+[]{#_ENREF_2 .anchor}Augustine, J.A., DeLuisi, J.J., & Long, C.N. (2000). SURFRAD - A national surface radiation budget network for atmospheric research. *Bulletin of the American Meteorological Society, 81*, 2341-2357
+
+[]{#_ENREF_3 .anchor}Baldridge, A.M., Hook, S.J., Grove, C.I., & Rivera, G. (2009). The ASTER Spectral Library Version 2.0. *Remote Sensing of Environment, 114*, 711-715
+
+[]{#_ENREF_4 .anchor}Bannari, A., Omari, K., Teillet, R.A., & Fedosejevs, G. (2005). Potential of getis statistics to characterize the radiometric uniformity and stability of test sites used for the calibration of earth observation sensors. *Ieee Transactions on Geoscience and Remote Sensing, 43*, 2918-2926
+
+[]{#_ENREF_5 .anchor}Barducci, A., & Pippi, I. (1996). Temperature and emissivity retrieval from remotely sensed images using the \'\'grey body emissivity\'\' method. *Ieee Transactions on Geoscience and Remote Sensing, 34*, 681-695
+
+[]{#_ENREF_6 .anchor}Barton, I.J., Minnett, P.J., Maillet, K.A., Donlon, C.J., Hook, S.J., Jessup, A.T., & Nightingale, T.J. (2004). The Miami2001 infrared radiometer calibration and intercomparison. part II: Shipboard results. *Journal of Atmospheric and Oceanic Technology, 21*, 268-283
+
+[]{#_ENREF_7 .anchor}Barton, I.J., Zavody, A.M., Obrien, D.M., Cutten, D.R., Saunders, R.W., & Llewellyn-Jones, D.T. (1989). Theoretical Algorithms for Satellite-Derived Sea-Surface Temperatures. *Journal of Geophysical Research-Atmospheres, 94*, 3365-3375
+
+[]{#_ENREF_8 .anchor}Bauer, P., Moreau, E., Chevallier, F., & O\'Keeffe, U. (2006). Multiple-scattering microwave radiative transfer for data assimilation applications. *Quarterly Journal of the Royal Meteorological Society, 132*, 1259-1281
+
+[]{#_ENREF_9 .anchor}Becker, F., & Li, Z.L. (1990). Temperature-Independent Spectral Indexes in Thermal Infrared Bands. *Remote Sensing of Environment, 32*, 17-33
+
+[]{#_ENREF_10 .anchor}Berk, A., Anderson, G.P., Acharya, P.K., Bernstein, L.S., Muratov, L., Lee, J., Fox, M., Adler-Golden, S.M., Chetwynd, J.H., Hoke, M.L., Lockwood, R.B., Gardner, J.A., Cooley, T.W., Borel, C.C., & Lewis, P.E. (2005). MODTRAN^TM^ 5, A Reformulated Atmospheric Band Model with Auxiliary Species and Practical Multiple Scattering Options: Update. In S.S. Sylvia, & P.E. Lewis (Eds.), *in Proc SPIE, Algorithms and Technologies for Multispectral, Hyperspectral, and Ultraspectral Imagery XI* (pp. 662-667). Bellingham, WA: Proceedings of SPIE
+
+[]{#_ENREF_11 .anchor}Borbas, E., Seemann, S.W., Huang, H.L., Li, J., & Menzel, W.P. (2005). Global profile training database for satellite regression retrievals with estimates of skin temperature and emissivity. In, *Proc. of the Int. ATOVS Study Conference-XIV*
+
+[]{#_ENREF_12 .anchor}Bosilovich, M.G., Chen, J.Y., Robertson, F.R., & Adler, R.F. (2008). Evaluation of global precipitation in reanalyses. *Journal of Applied Meteorology and Climatology, 47*, 2279-2299
+
+[]{#_ENREF_13 .anchor}Brown, O., & Minnett, P. (1999). MODIS infrared sea surface temperature algorithm. *Algorithm Theoretical Basis Document Version 2*, Univ. of Miami, Miami, Fla.
+
+[]{#_ENREF_14 .anchor}Chevallier, F. (2000). Sampled database of 60-level atmospheric profiles from the ECMWF analyses. In
+
+[]{#_ENREF_15 .anchor}Coll, C., & Caselles, V. (1997). A split-window algorithm for land surface temperature from advanced very high resolution radiometer data: Validation and algorithm comparison. *Journal of Geophysical Research-Atmospheres, 102*, 16697-16713
+
+[]{#_ENREF_16 .anchor}Coll, C., Caselles, V., Galve, J.M., Valor, E., Niclos, R., Sanchez, J.M., & Rivas, R. (2005). Ground measurements for the validation of land surface temperatures derived from AATSR and MODIS data. *Remote Sensing of Environment, 97*, 288-300
+
+[]{#_ENREF_17 .anchor}Coll, C., Wan, Z.M., & Galve, J.M. (2009a). Temperature-based and radiance-based validations of the V5 MODIS land surface temperature product. *Journal of Geophysical Research-Atmospheres, 114*, D20102, doi:20110.21029/22009JD012038
+
+[]{#_ENREF_18 .anchor}Coll, C., Wan, Z.M., & Galve, J.M. (2009b). Temperature-based and radiance-based validations of the V5 MODIS land surface temperature product. *Journal of Geophysical Research-Atmospheres, 114*, -
+
+[]{#_ENREF_19 .anchor}Cook, M. (2014). Atmospheric Compensation for a Landsat Land Surface Temperature Product. In, *Chester F. Carlson Center for Imaging Science*. Rochester: Rochester Institute of Technology
+
+[]{#_ENREF_20 .anchor}Cosnefroy, H.N., Leroy, M., & Briottet, X. (1996). Selection and characterization of Saharan and Arabian desert sites for the calibration of optical satellite sensors. *Remote Sensing of Environment, 58*, 101-114
+
+[]{#_ENREF_21 .anchor}Coudert, B., Ottle, C., Boudevillain, B., Demarty, J., & Guillevic, P. (2006). Contribution of thermal infrared remote sensing data in multiobjective calibration of a dual-source SVAT model. *Journal of Hydrometeorology, 7*, 404-420
+
+[]{#_ENREF_22 .anchor}de Vries, C., Danaher, T., Denham, R., Scarth, P., & Phinn, S. (2007). An operational radiometric calibration procedure for the Landsat sensors based on pseudo-invariant target sites. *Remote Sensing of Environment, 107*, 414-429
+
+[]{#_ENREF_23 .anchor}Deschamps, P.Y., & Phulpin, T. (1980). Atmospheric Correction of Infrared Measurements of Sea-Surface Temperature Using Channels at 3.7, 11 and 12 Mu-M. *Boundary-Layer Meteorology, 18*, 131-143
+
+[]{#_ENREF_24 .anchor}Eyre, J.R., & Woolf, H.M. (1988). Transmittance of Atmospheric Gases in the Microwave Region - a Fast Model. *Applied Optics, 27*, 3244-3249
+
+[]{#_ENREF_25 .anchor}French, A.N., Jacob, F., Anderson, M.C., Kustas, W.P., Timmermans, W., Gieske, A., Su, Z., Su, H., McCabe, M.F., Li, F., Prueger, J., & Brunsell, N. (2005). Surface energy fluxes with the Advanced Spaceborne Thermal Emission and Reflection radiometer (ASTER) at the Iowa 2002 SMACEX site (USA) (vol 99, pg 55, 2005). *Remote Sensing of Environment, 99*, 471-471
+
+[]{#_ENREF_26 .anchor}French, A.N., Schmugge, T.J., Ritchie, J.C., Hsu, A., Jacob, F., & Ogawa, K. (2008). Detecting land cover change at the Jornada Experimental Range, New Mexico with ASTER emissivities. *Remote Sensing of Environment, 112*, 1730-1748
+
+[]{#_ENREF_27 .anchor}Galve, J.A., Coll, C., Caselles, V., & Valor, E. (2008). An atmospheric radiosounding database for generating land surface temperature algorithms. *IEEE Transactions on Geoscience and Remote Sensing, 46*, 1547-1557
+
+[]{#_ENREF_28 .anchor}Gillespie, A., Rokugawa, S., Hook, S., Matsunaga, T., & Kahle, A.B. (1999). Temperature/Emissivity Separation Algorithm Theoretical Basis Document, Version 2.4, ASTER TES ATBD, NASA Contract NAS5-31372, 31322 March, 31999
+
+[]{#_ENREF_29 .anchor}Gillespie, A., Rokugawa, S., Matsunaga, T., Cothern, J.S., Hook, S., & Kahle, A.B. (1998). A temperature and emissivity separation algorithm for Advanced Spaceborne Thermal Emission and Reflection Radiometer (ASTER) images. *Ieee Transactions on Geoscience and Remote Sensing, 36*, 1113-1126
+
+[]{#_ENREF_30 .anchor}Gottsche, F.M., & Hulley, G.C. (2012a). Validation of six satellite-retrieved land surface emissivity products over two land cover types in a hyper-arid region. *Remote Sensing of Environment, 124*, 149-158
+
+[]{#_ENREF_31 .anchor}Gottsche, F.M., & Hulley, G.C. (2012b). Validation of six satellite-retrieved land surface emissivity products over two land cover types in a hyper-arid region. *Remote Sensing of Environment, 124*, 149-158
+
+[]{#_ENREF_32 .anchor}Guillevic, P., Privette, J.L., Coudert, B., Palecki, M.A., Demarty, J., Ottle, C., & Augustine, J.A. (2012). Land Surface Temperature product validation using NOAA\'s surface climate observation networks---Scaling methodology for the Visible Infrared Imager Radiometer Suite (VIIRS). *Remote Sensing of Environment, 124*, 282-298
+
+[]{#_ENREF_33 .anchor}Gustafson, W.T., Gillespie, A.R., & Yamada, G.J. (2006). Revisions to the ASTER temperature/emissivity separation algorithm. In, *2nd International Symposium on Recent Advances in Quantitative Remote Sensing*. Torrent (Valencia), Spain
+
+[]{#_ENREF_34 .anchor}Hook, S.J., Chander, G., Barsi, J.A., Alley, R.E., Abtahi, A., Palluconi, F.D., Markham, B.L., Richards, R.C., Schladow, S.G., & Helder, D.L. (2004). In-flight validation and recovery of water surface temperature with Landsat-5 thermal infrared data using an automated high-altitude lake validation site at Lake Tahoe. *Ieee Transactions on Geoscience and Remote Sensing, 42*, 2767-2776
+
+[]{#_ENREF_35 .anchor}Hook, S.J., Dmochowski, J.E., Howard, K.A., Rowan, L.C., Karlstrom, K.E., & Stock, J.M. (2005). Mapping variations in weight percent silica measured from multispectral thermal infrared imagery - Examples from the Hiller Mountains, Nevada, USA and Tres Virgenes-La Reforma, Baja California Sur, Mexico. *Remote Sensing of Environment, 95*, 273-289
+
+[]{#_ENREF_36 .anchor}Hook, S.J., Gabell, A.R., Green, A.A., & Kealy, P.S. (1992). A Comparison of Techniques for Extracting Emissivity Information from Thermal Infrared Data for Geologic Studies. *Remote Sensing of Environment, 42*, 123-135
+
+[]{#_ENREF_37 .anchor}Hook, S.J., Prata, F.J., Alley, R.E., Abtahi, A., Richards, R.C., Schladow, S.G., & Palmarsson, S.O. (2003). Retrieval of lake bulk and skin temperatures using Along-Track Scanning Radiometer (ATSR-2) data: A case study using Lake Tahoe, California. *Journal of Atmospheric and Oceanic Technology, 20*, 534-548
+
+[]{#_ENREF_38 .anchor}Hook, S.J., Vaughan, R.G., Tonooka, H., & Schladow, S.G. (2007). Absolute radiometric in-flight validation of mid infrared and thermal infrared data from ASTER and MODIS on the terra spacecraft using the Lake Tahoe, CA/NV, USA, automated validation site. *Ieee Transactions on Geoscience and Remote Sensing, 45*, 1798-1807
+
+[]{#_ENREF_39 .anchor}Hulley, G., Hook, S., & Hughes, C. (2012a). MODIS MOD21 Land Surface Temperature and Emissivity Algorithm Theoretical Basis Document. In: Jet Propulsion Laboratory, California Institute of Technology, JPL Publication 12-17, August, 2012
+
+[]{#_ENREF_40 .anchor}Hulley, G.C., Gottsche, F.M., Rivera, G., Hook, S.J., Freepartner, R.J., Martin, M.A., Cawse-Nicholson, K., & Johnson, W.R. (2022). Validation and Quality Assessment of the ECOSTRESS Level-2 Land Surface Temperature and Emissivity Product. *Ieee Transactions on Geoscience and Remote Sensing, 60*
+
+[]{#_ENREF_41 .anchor}Hulley, G.C., & Hook, S.J. (2009a). Intercomparison of Versions 4, 4.1 and 5 of the MODIS Land Surface Temperature and Emissivity Products and Validation with Laboratory Measurements of Sand Samples from the Namib Desert, Namibia. *Remote Sensing of Environment, 113*, 1313-1318
+
+[]{#_ENREF_42 .anchor}Hulley, G.C., & Hook, S.J. (2009b). The North American ASTER Land Surface Emissivity Database (NAALSED) Version 2.0. *Remote Sensing of Environment, 113*, 1967-1975
+
+[]{#_ENREF_43 .anchor}Hulley, G.C., & Hook, S.J. (2011). Generating Consistent Land Surface Temperature and Emissivity Products Between ASTER and MODIS Data for Earth Science Research. *Ieee Transactions on Geoscience and Remote Sensing, 49*, 1304-1315
+
+[]{#_ENREF_44 .anchor}Hulley, G.C., & Hook, S.J. (2012). A radiance-based method for estimating uncertainties in the Atmospheric Infrared Sounder (AIRS) land surface temperature product. *Journal of Geophysical Research-Atmospheres, 117*
+
+[]{#_ENREF_45 .anchor}Hulley, G.C., Hook, S.J., & Baldridge, A.M. (2008). ASTER land surface emissivity database of California and Nevada. *Geophysical Research Letters, 35*, L13401, doi: 13410.11029/12008gl034507
+
+[]{#_ENREF_46 .anchor}Hulley, G.C., Hook, S.J., & Baldridge, A.M. (2009a). Validation of the North American ASTER Land Surface Emissivity Database (NAALSED) Version 2.0 using Pseudo-Invariant Sand Dune Sites. *Remote Sensing of Environment, 113*, 2224-2233
+
+[]{#_ENREF_47 .anchor}Hulley, G.C., Hook, S.J., Manning, E., Lee, S.Y., & Fetzer, E.J. (2009b). Validation of the Atmospheric Infrared Sounder (AIRS) Version 5 (v5) Land Surface Emissivity Product over the Namib and Kalahari Deserts. *Journal of Geophysical Research Atmospheres, 114*, D19104
+
+[]{#_ENREF_48 .anchor}Hulley, G.C., Hughes, T., & Hook, S.J. (2012b). Quantifying Uncertainties in Land Surface Temperature (LST) and Emissivity Retrievals from ASTER and MODIS Thermal Infrared Data. *Journal of Geophysical Research Atmospheres*, in press.
+
+[]{#_ENREF_49 .anchor}Jimenez-Munoz, J.C., & Sobrino, J.A. (2010). A Single-Channel Algorithm for Land-Surface Temperature Retrieval From ASTER Data. *Ieee Geoscience and Remote Sensing Letters, 7*, 176-179
+
+[]{#_ENREF_50 .anchor}Jin, M.L., & Dickinson, R.E. (2010). Land surface skin temperature climatology: benefitting from the strengths of satellite observations. *Environmental Research Letters, 5*, -
+
+[]{#_ENREF_51 .anchor}Justice, C., & Townshend, J. (2002). Special issue on the moderate resolution imaging spectroradiometer (MODIS): a new generation of land surface monitoring. *Remote Sensing of Environment, 83*, 1-2
+
+[]{#_ENREF_52 .anchor}Kalnay, E., Kanamitsu, M., & Baker, W.E. (1990). Global Numerical Weather Prediction at the National-Meteorological-Center. *Bulletin of the American Meteorological Society, 71*, 1410-1428
+
+[]{#_ENREF_53 .anchor}Kealy, M.J., Montgomery, M., & Dovidio, J.F. (1990). Reliability and Predictive-Validity of Contingent Values - Does the Nature of the Good Matter. *Journal of Environmental Economics and Management, 19*, 244-263
+
+[]{#_ENREF_54 .anchor}Kealy, P.S., & Hook, S. (1993). Separating temperature & emissivity in thermal infrared multispectral scanner data: Implication for recovering land surface temperatures. *Ieee Transactions on Geoscience and Remote Sensing, 31*, 1155-1164
+
+[]{#_ENREF_55 .anchor}Kneizys, F.X., Abreu, L.W., Anderson, G.P., Chetwynd, J.H., Shettle, E.P., Berk, A., Bernstein, L.S., Robertson, D.C., Acharya, P.K., Rothman, L.A., Selby, J.E.A., Gallery, W.O., & Clough, S.A. (1996). The MODTRAN 2/3 Report & LOWTRAN 7 Model, F19628-91-C-0132. In, *Phillips Lab*. Hanscom AFB, MA
+
+[]{#_ENREF_56 .anchor}Li, F.Q., Jackson, T.J., Kustas, W.P., Schmugge, T.J., French, A.N., Cosh, M.H., & Bindlish, R. (2004). Deriving land surface temperature from Landsat 5 and 7 during SMEX02/SMACEX. *Remote Sensing of Environment, 92*, 521-534
+
+[]{#_ENREF_57 .anchor}Lucchesi, R. (2017). File Specification for GEOS-5 FP. GMAO Office Note No. 4 (Version 1.1), 61 pp, available from <http://gmao.gsfc.nasa.gov/pubs/office_notes>. In
+
+[]{#_ENREF_58 .anchor}Lyon, R. (1965). Analysis of ROcks by Spectral INfrared Emission (8 to 25 microns). *Economic Geology and the Bulletin of the Society of Economic Geologists, 60*, 715-736
+
+[]{#_ENREF_59 .anchor}Masuda, K., Takashima, T., & Takayama, Y. (1988). Emissivity of Pure and Sea Waters for the Model Sea-Surface in the Infrared Window Regions. *Remote Sensing of Environment, 24*, 313-329
+
+[]{#_ENREF_60 .anchor}Matricardi, M. (2008). The generation of RTTOV regression coefficients for IASI and AIRS using a new profile training set and a new line-by-line database. In: ECMWF Research Dept. Tech. Memo.
+
+[]{#_ENREF_61 .anchor}Matricardi, M. (2009). Technical Note: An assessment of the accuracy of the RTTOV fast radiative transfer model using IASI data. *Atmospheric Chemistry and Physics, 9*, 6899-6913
+
+[]{#_ENREF_62 .anchor}Matricardi, M., Chevallier, F., Kelly, G., & Thepaut, J.N. (2004). An improved general fast radiative transfer model for the assimilation of radiance observations. *Quarterly Journal of the Royal Meteorological Society, 130*, 153-173
+
+[]{#_ENREF_63 .anchor}Matricardi, M., Chevallier, F., & Tjemkes, S.A. (2001). An improved general fast radiative transfer model for the assimilation of radiance observations. In: European Centre for Medium-Range Weather Forecasts
+
+[]{#_ENREF_64 .anchor}Matricardi, M., & Saunders, R. (1999). Fast radiative transfer model for simulation of infrared atmospheric sounding interferometer radiances. *Applied Optics, 38*, 5679-5691
+
+[]{#_ENREF_65 .anchor}Matsunaga, T. (1994). A temperature-emissivity separation method using an empirical
+
+relationship between the mean, the maximum, & the minimum of the thermal infrared
+
+emissivity spectrum, in Japanese with English abstract. *Journal Remote Sensing Society Japan, 14*, 230-241
+
+[]{#_ENREF_66 .anchor}Meerdink, S.K., Hook, S.J., Roberts, D.A., & Abbott, E.A. (2019). The ECOSTRESS spectral library version 1.0. *Remote Sensing of Environment, 230*
+
+[]{#_ENREF_67 .anchor}Mesinger, F., DiMego, G., Kalnay, E., Mitchell, K., Shafran, P.C., Ebisuzaki, W., Jovic, D., Woollen, J., Rogers, E., Berbery, E.H., Ek, M.B., Fan, Y., Grumbine, R., Higgins, W., Li, H., Lin, Y., Manikin, G., Parrish, D., & Shi, W. (2006). North American regional reanalysis. *Bulletin of the American Meteorological Society, 87*, 343-+
+
+[]{#_ENREF_68 .anchor}Mira, M., Valor, E., Boluda, R., Caselles, V., & Coll, C. (2007). Influence of soil water content on the thermal infrared emissivity of bare soils: Implication for land surface temperature determination. *Journal of Geophysical Research-Earth Surface, 112*, F04003
+
+[]{#_ENREF_69 .anchor}Mushkin, A., & Gillespie, A.R. (2005). Estimating sub-pixel surface roughness using remotely sensed stereoscopic data. *Remote Sensing of Environment, 99*, 75-83
+
+[]{#_ENREF_70 .anchor}Norman, J.M., & Becker, F. (1995). Terminology in Thermal Infrared Remote-Sensing of Natural Surfaces. *Agricultural and Forest Meteorology, 77*, 153-166
+
+[]{#_ENREF_71 .anchor}Ogawa, K., Schmugge, T., & Rokugawa, S. (2006). Observations of the dependence of the thermal infrared emissivity on soil moisture. *Geophysical Research Abstracts, 8*, 04996
+
+[]{#_ENREF_72 .anchor}Palluconi, F., Hoover, G., Alley, R.E., Nilsen, M.J., & Thompson, T. (1999). An atmospheric correction method for ASTER thermal radiometry over land, ASTER algorithm theoretical basis document (ATBD), Revision 3, Jet Propulsion Laboratory, Pasadena, CA, 1999
+
+[]{#_ENREF_73 .anchor}Prata, A.J. (1994). Land-Surface Temperatures Derived from the Advanced Very High-Resolution Radiometer and the Along-Track Scanning Radiometer .2. Experimental Results and Validation of Avhrr Algorithms. *Journal of Geophysical Research-Atmospheres, 99*, 13025-13058
+
+[]{#_ENREF_74 .anchor}Price, J.C. (1984). Land surface temperature measurements from the split window channels of the NOAA 7 Advanced Very High Resolution Radiometer. *Journal of Geophysical Research, 89*, 7231-7237
+
+[]{#_ENREF_75 .anchor}Saunders, R., Matricardi, M., & Brunel, P. (1999). An improved fast radiative transfer model for assimilation of satellite radiance observations. *Quarterly Journal of the Royal Meteorological Society, 125*, 1407-1425
+
+[]{#_ENREF_76 .anchor}Seemann, S.W., Borbas, E., Li, J., Menzel, P., & Gumley, L.E. (2006). MODIS Atmospheric Profile Retrieval Algorithm Theoretical Basis Document, Cooperative Institute for Meteorological Satellite Studies, University of Wisconsin-Madison, Madison, WI, Version 6, October 25, 2006
+
+[]{#_ENREF_77 .anchor}Snyder, W.C., Wan, Z., Zhang, Y., & Feng, Y.Z. (1998). Classification-based emissivity for land surface temperature measurement from space. *International Journal of Remote Sensing, 19*, 2753-2774
+
+[]{#_ENREF_78 .anchor}Strow, L.L., Hannon, S.E., Machado, S.D.S., Motteler, H.E., & Tobin, D.C. (2006). Validation of the Atmospheric Infrared Sounder radiative transfer algorithm. *Journal of Geophysical Research-Atmospheres, 111*
+
+[]{#_ENREF_79 .anchor}Susskind, J., Barnet, C.D., & Blaisdell, J.M. (2003). Retrieval of atmospheric and surface parameters from AIRS/AMSU/HSB data in the presence of clouds. *Ieee Transactions on Geoscience and Remote Sensing, 41*, 390-409
+
+[]{#_ENREF_80 .anchor}Teillet, P.M., Fedosejevs, G., Gautier, R.P., & Schowengerdt, R.A. (1998). Uniformity characterization of land test sites used for radiometric calibration of earth observation sensors. In, *Proc. 20th Can. Symp. Remote Sensing* (pp. 1-4). Calgary, AB, Canada
+
+[]{#_ENREF_81 .anchor}Tonooka, H. (2001). An atmospheric correction algorithm for thermal infrared multispectral data over land - A water-vapor scaling method. *Ieee Transactions on Geoscience and Remote Sensing, 39*, 682-692
+
+[]{#_ENREF_82 .anchor}Tonooka, H. (2005). Accurate atmospheric correction of ASTER thermal infrared imagery using the WVS method. *Ieee Transactions on Geoscience and Remote Sensing, 43*, 2778-2792
+
+[]{#_ENREF_83 .anchor}Tonooka, H., Palluconi, F.D., Hook, S.J., & Matsunaga, T. (2005). Vicarious calibration of ASTER thermal infrared bands. *Ieee Transactions on Geoscience and Remote Sensing, 43*, 2733-2746
+
+[]{#_ENREF_84 .anchor}Vaughan, R.G., Hook, S.J., Calvin, W.M., & Taranik, J.V. (2005). Surface mineral mapping at Steamboat Springs, Nevada, USA, with multi-wavelength thermal infrared images. *Remote Sensing of Environment, 99*, 140-158
+
+[]{#_ENREF_85 .anchor}Wan, Z., & Li, Z.L. (2008). Radiance-based validation of the V5 MODIS land-surface temperature product. *International Journal of Remote Sensing, 29*, 5373-5395
+
+[]{#_ENREF_86 .anchor}Wan, Z.M. (2008). New refinements and validation of the MODIS Land-Surface Temperature/Emissivity products. *Remote Sensing of Environment, 112*, 59-74
+
+[]{#_ENREF_87 .anchor}Wan, Z.M., & Dozier, J. (1996). A generalized split-window algorithm for retrieving land-surface temperature from space. *Ieee Transactions on Geoscience and Remote Sensing, 34*, 892-905
+
+[]{#_ENREF_88 .anchor}Wan, Z.M., & Li, Z.L. (1997). A physics-based algorithm for retrieving land-surface emissivity and temperature from EOS/MODIS data. *Ieee Transactions on Geoscience and Remote Sensing, 35*, 980-996
+
+[]{#_ENREF_89 .anchor}Wang, K.C., & Liang, S.L. (2009). Evaluation of ASTER and MODIS land surface temperature and emissivity products using long-term surface longwave radiation observations at SURFRAD sites. *Remote Sensing of Environment, 113*, 1556-1565
+
+[]{#_ENREF_90 .anchor}Watson, K. (1992). Spectral Ratio Method for Measuring Emissivity. *Remote Sensing of Environment, 42*, 113-116
+
+[]{#_ENREF_91 .anchor}Watson, K., Kruse, F.A., & Hummermiller, S. (1990). Thermal Infrared Exploration in the Carlin Trend, Northern Nevada. *Geophysics, 55*, 70-79
+
+[]{#_ENREF_92 .anchor}Yu, Y., Privette, J.L., & Pinheiro, A.C. (2008). Evaluation of split-window land surface temperature algorithms for generating climate data records. *Ieee Transactions on Geoscience and Remote Sensing, 46*, 179-192
