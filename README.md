@@ -13,9 +13,7 @@ This document outlines the theory and methodology for generating the OTTER Level
 
 In addition to surface energy balance, LST&E products are essential for a wide range of other Earth system studies. For example, emissivity spectral signatures are important for geologic studies and mineral mapping studies (Hook et al. 2005; Vaughan et al. 2005). This is because emissivity features in the TIR region are unique for many different types of materials that make up the Earth's surface, for example, quartz, which is ubiquitous in most of the arid regions of the world. Emissivities are also used for land use and land cover change mapping since vegetation fractions can often be inferred if the background soil is observable (French et al. 2008). 
 
-
 Maximum radiometric emission for the typical range of Earth surface temperatures, excluding fires and volcanoes, is found in two infrared spectral "window" regions: the midwave infrared (3.5–5 µm) and the thermal infrared (8–13 µm). The radiation emitted in these windows for a given wavelength is a function of both temperature and emissivity. Determining the separate contribution from each component in a radiometric measurement is an ill-posed problem since there will always be more unknowns—N emissivities and a single temperature—than the number of measurements, N, available. For SBG, we will be solving for one temperature and eight emissivities. Therefore, an additional constraint is needed, independent of the data. There have been numerous theories and approaches over the past two decades to solve for this extra degree of freedom. For example, the ASTER Temperature Emissivity Working Group (TEWG) analyzed ten different algorithms for solving the problem (Gillespie et al. 1999). Most of these relied on a radiative transfer model to correct at-sensor radiance to surface radiance and an emissivity model to separate temperature and emissivity. Other approaches include the split-window (SW) algorithm, which extends the SST SW approach to land surfaces, assuming that land emissivities in the window region (10.5–12 µm) are stable and well known. However, this assumption leads to unreasonably large errors over barren regions where emissivities have large variations both spatially and spectrally. The ASTER TEWG finally decided on a hybrid algorithm, termed the temperature emissivity separation (TES) algorithm, which capitalizes on the strengths of previous algorithms with additional features (Gillespie et al. 1998). 
-
 
 The remainder of the document will discuss the SBG instrument characteristics, provide a background on TIR remote sensing, give a full description and background on the atmospheric correction and the TES algorithm, provide quality assessment, discuss numerical simulation studies and, finally, outline a validation plan.
 
@@ -170,7 +168,6 @@ Recommend more detailed analysis of   other QC information
 ### 2.4. Low latency product
 
 A low latency (\< 24 hour) product will be created in addition to the standard product. It may or may not be archived. The product contents will be the same as the standard product, although the method to obtain it will be different (see the relevant ATBD).
-
 
 ## 3. Theory and Methodology
 
