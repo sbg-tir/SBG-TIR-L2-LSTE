@@ -2,6 +2,8 @@
 
 This repository will contain the Surface Biology and Geology Thermal Infrared (SBG-TIR) OTTER level 2 land-surface temperature and emissivity (L2 LSTE) data product algorithm.
 
+The SBG collection 1 level 2 surface temperature data product is being developed based on the [ECOsystem Spaceborne Thermal Radiometer Experiment on Space Station (ECOSTRESS) collection 3 level 2 surface temperature data product](https://github.com/ECOSTRESS-Collection-3/ECOv003-L2-LSTE).
+
 [Glynn C. Hulley](https://github.com/ghulley) (he/him)<br>
 [glynn.hulley@jpl.nasa.gov](mailto:glynn.hulley@jpl.nasa.gov)<br>
 Lead developer and designer<br>
